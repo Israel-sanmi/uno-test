@@ -80,7 +80,7 @@ export default function Header({
             type="button"
             aria-expanded={megaOpen}
             onClick={() => setMegaOpen((v) => !v)}
-            className={`flex items-center gap-2 h-10 px-4 rounded-lg text-sm font-semibold transition ${
+            className={`hidden sm:flex items-center gap-2 h-10 px-4 rounded-sm text-sm font-semibold transition ${
               megaOpen
                 ? "bg-black text-white"
                 : "bg-main text-white hover:opacity-90"
@@ -127,9 +127,9 @@ export default function Header({
         <div className="flex items-center gap-2 shrink-0">
           <a
             href="#"
-            className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50"
+            className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-sm hover:bg-gray-50"
           >
-            <span className="grid place-items-center size-9 rounded-lg bg-main/10 text-main">
+            <span className="grid place-items-center size-9 rounded-sm bg-main/10 text-main">
               <User className="size-4" />
             </span>
             <span className="text-xs leading-tight text-black">
@@ -139,15 +139,15 @@ export default function Header({
 
           <button
             onClick={onCartClick}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 relative cursor-pointer text-left"
+            className="flex items-center gap-2 px-3 py-2 rounded-sm hover:bg-gray-50 relative cursor-pointer text-left"
           >
-            <span className="grid place-items-center size-9 rounded-lg bg-main/10 text-main relative">
+            <span className="grid place-items-center size-9 rounded-sm bg-main/10 text-main relative">
               <ShoppingCart className="size-4" />
               <span className="absolute -top-1 -right-1 size-4 rounded-full bg-main text-white text-[10px] grid place-items-center font-bold">
                 {cartCount}
               </span>
             </span>
-            <span className="text-xs leading-tight text-black">
+            <span className="hidden sm:block text-xs leading-tight text-black">
               Cart
               <br />
               <span className="font-semibold">{cartCount} - Items</span>
