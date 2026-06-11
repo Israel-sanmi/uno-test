@@ -35,7 +35,13 @@ const items = [
   { label: "Shipping" },
 ];
 
-export default function Header() {
+export default function Header({
+  onCartClick,
+  cartCount = 0,
+}: {
+  onCartClick?: () => void;
+  cartCount?: number;
+}) {
   const [megaOpen, setMegaOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -129,22 +135,22 @@ export default function Header() {
             </span>
           </a>
 
-          <a
-            href="#"
-            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 relative"
+          <button
+            onClick={onCartClick}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 relative cursor-pointer text-left"
           >
             <span className="grid place-items-center size-9 rounded-lg bg-main/10 text-main relative">
               <ShoppingCart className="size-4" />
-              <span className="absolute -top-1 -right-1 size-4 rounded-full bg-main text-white text-[10px] grid place-items-center">
-                0
+              <span className="absolute -top-1 -right-1 size-4 rounded-full bg-main text-white text-[10px] grid place-items-center font-bold">
+                {cartCount}
               </span>
             </span>
             <span className="text-xs leading-tight text-black">
               Cart
               <br />
-              <span className="font-semibold">0 - Items</span>
+              <span className="font-semibold">{cartCount} - Items</span>
             </span>
-          </a>
+          </button>
 
           <button
             aria-label="Menu"

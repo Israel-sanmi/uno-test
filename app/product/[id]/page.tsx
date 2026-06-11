@@ -27,10 +27,13 @@ import {
   Check,
   Flag,
   X,
+  Trash2,
+  ShoppingCart,
 } from "lucide-react";
 import TopBar from "@/components/TopBar";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import FrequentlyBoughtCarousel from "@/components/product/frequentlyBoughtCarousel";
 
 /* ────────────────────── Mock Data ────────────────────── */
 
@@ -199,6 +202,38 @@ const tabItems = [
   { id: "description", label: "Description" },
 ];
 
+const deliveryOptions: Record<string, {
+  freeDelivery: string;
+  expressDelivery: string;
+  returns: string;
+  warranty: string;
+}> = {
+  "United Kingdom": {
+    freeDelivery: "Free delivery by 18 - 20 Jun",
+    expressDelivery: "Express delivery by 15-17 Jun from £5.00",
+    returns: "Free 30-day returns",
+    warranty: "12 months seller warranty",
+  },
+  "United States": {
+    freeDelivery: "Free delivery by 20 - 22 Jun",
+    expressDelivery: "Express delivery by 16-18 Jun from $15.00",
+    returns: "Free 30-day returns",
+    warranty: "12 months seller warranty",
+  },
+  "Nigeria": {
+    freeDelivery: "Free delivery by 22 - 25 Jun",
+    expressDelivery: "Express delivery by 17-20 Jun from ₦15,000",
+    returns: "Free 15-day returns",
+    warranty: "12 months local warranty",
+  },
+  "Germany": {
+    freeDelivery: "Free delivery by 19 - 21 Jun",
+    expressDelivery: "Express delivery by 16-18 Jun from €10.00",
+    returns: "Free 30-day returns",
+    warranty: "24 months warranty",
+  },
+};
+
 /* ────────────────────── Page Component ────────────────────── */
 
 export default function ProductDetailPage() {
@@ -209,9 +244,85 @@ export default function ProductDetailPage() {
   const [activeTab, setActiveTab] = useState("service");
   const [openFaqs, setOpenFaqs] = useState<Set<number>>(new Set());
   const [thumbStart, setThumbStart] = useState(0);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [quantity, setQuantity] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [cart, setCart] = useState<{
+    id: string;
+    title: string;
+    price: number;
+    color: string;
+    capacity: string;
+    quantity: number;
+    imageColor: string;
+  }[]>([]);
+  const [quantity, setQuantity] = useState(1);
   const [isLaserPrintingSelected, setIsLaserPrintingSelected] = useState(false);
+  const [deliveryCountry, setDeliveryCountry] = useState("United Kingdom");
+
+  const handleAddFrequentlyBoughtToCart = (item: { title: string; price: string }) => {
+    const cleanedPrice = parseFloat(item.price.replace(/[^\d]/g, "")) || 204061;
+    const newItem = {
+      id: `frequently-bought-${item.title}`,
+      title: item.title,
+      price: cleanedPrice,
+      color: "Standard",
+      capacity: "Standard",
+      quantity: 1,
+      imageColor: "hsl(210, 40%, 92%)",
+    };
+
+    setCart((prevCart) => {
+      const existingIndex = prevCart.findIndex((c) => c.id === newItem.id);
+      if (existingIndex > -1) {
+        const nextCart = [...prevCart];
+        nextCart[existingIndex].quantity += 1;
+        return nextCart;
+      }
+      return [...prevCart, newItem];
+    });
+
+    setIsCartOpen(true);
+  };
+
+  const addToCart = () => {
+    const finalQty = quantity > 0 ? quantity : 1;
+    const newItem = {
+      id: `${product.colors[selectedColor].name}-${product.capacities[selectedCapacity]}`,
+      title: product.title,
+      price: 204061,
+      color: product.colors[selectedColor].name,
+      capacity: product.capacities[selectedCapacity],
+      quantity: finalQty,
+      imageColor: productImages[currentImage].color,
+    };
+
+    setCart((prevCart) => {
+      const existingIndex = prevCart.findIndex((item) => item.id === newItem.id);
+      if (existingIndex > -1) {
+        const nextCart = [...prevCart];
+        nextCart[existingIndex].quantity += finalQty;
+        return nextCart;
+      }
+      return [...prevCart, newItem];
+    });
+
+    setIsModalOpen(false);
+    setIsCartOpen(true);
+  };
+
+  const updateCartQty = (id: string, newQty: number) => {
+    if (newQty <= 0) {
+      removeFromCart(id);
+      return;
+    }
+    setCart((prevCart) =>
+      prevCart.map((item) => (item.id === id ? { ...item, quantity: newQty } : item))
+    );
+  };
+
+  const removeFromCart = (id: string) => {
+    setCart((prevCart) => prevCart.filter((item) => item.id !== id));
+  };
 
   /* magnifier state */
   const [showMagnifier, setShowMagnifier] = useState(false);
@@ -291,9 +402,12 @@ export default function ProductDetailPage() {
   };
 
   return (
-    <div className="font-poppins text-black bg-gray-50 min-h-screen">
+    <div className="font-poppins text-black bg-gray-50 min-h-screen pb-24">
       <TopBar />
-      <Header />
+      <Header
+        onCartClick={() => setIsCartOpen(true)}
+        cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
+      />
 
       {/* Breadcrumb */}
       <div className="bg-white border-b border-gray-100">
@@ -373,7 +487,7 @@ export default function ProductDetailPage() {
                   {mediaTab === "photos" ? (
                     <div
                       ref={mainImageRef}
-                      className="relative w-full aspect-square rounded-xl overflow-hidden cursor-crosshair"
+                      className="relative w-full aspect-square rounded-sm overflow-hidden cursor-crosshair"
                       style={{
                         backgroundColor: productImages[currentImage].color,
                       }}
@@ -392,7 +506,7 @@ export default function ProductDetailPage() {
                       {/* Magnifier lens */}
                       {showMagnifier && (
                         <div
-                          className="absolute pointer-events-none border-2 border-main/50 rounded-full shadow-lg z-10"
+                          className="absolute pointer-events-none border-2 border-main/50 rounded-sm shadow-lg z-10"
                           style={{
                             width: 150,
                             height: 150,
@@ -411,26 +525,26 @@ export default function ProductDetailPage() {
                       {/* Nav arrows */}
                       <button
                         onClick={prevImage}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 size-9 rounded-full bg-white/90 shadow grid place-items-center hover:bg-white transition z-20"
+                        className="absolute left-3 top-1/2 -translate-y-1/2 size-9 rounded-sm bg-white/90 shadow grid place-items-center hover:bg-white transition z-20"
                       >
                         <ChevronLeft className="size-5 text-gray-700" />
                       </button>
                       <button
                         onClick={nextImage}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 size-9 rounded-full bg-white/90 shadow grid place-items-center hover:bg-white transition z-20"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 size-9 rounded-sm bg-white/90 shadow grid place-items-center hover:bg-white transition z-20"
                       >
                         <ChevronRight className="size-5 text-gray-700" />
                       </button>
 
                       {/* Wishlist + image search icons */}
-                      <button className="absolute top-3 right-3 size-9 rounded-full bg-white/90 shadow grid place-items-center hover:bg-white z-20">
+                      <button className="absolute top-3 right-3 size-9 rounded-sm bg-white/90 shadow grid place-items-center hover:bg-white z-20">
                         <Heart className="size-4 text-gray-600" />
                       </button>
                     </div>
                   ) : (
-                    <div className="w-full aspect-square rounded-xl bg-gray-900 flex flex-col items-center justify-center gap-2 relative overflow-hidden">
+                    <div className="w-full aspect-square rounded-sm bg-gray-900 flex flex-col items-center justify-center gap-2 relative overflow-hidden">
                       <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/30 z-10" />
-                      <div className="size-16 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm grid place-items-center cursor-pointer transition transform hover:scale-105 z-20 shadow-md">
+                      <div className="size-16 rounded-sm bg-white/20 hover:bg-white/30 backdrop-blur-sm grid place-items-center cursor-pointer transition transform hover:scale-105 z-20 shadow-md">
                         <Play className="size-7 text-white ml-1 fill-white" />
                       </div>
                       <span className="text-sm text-white/80 font-semibold tracking-wide z-20">
@@ -466,7 +580,7 @@ export default function ProductDetailPage() {
                   </div>
 
                   {/* Supplier card (below gallery) */}
-                  <div className="mt-5 rounded-xl border border-gray-200 bg-white p-4">
+                  <div className="mt-5 rounded-sm border border-gray-200 bg-white p-4">
                     <div className="flex items-start gap-3">
                       <div className="size-12 rounded-lg bg-main/10 grid place-items-center shrink-0">
                         <span className="text-main font-bold text-lg">H</span>
@@ -573,7 +687,7 @@ export default function ProductDetailPage() {
                 <span className="text-sm text-gray-500">
                   {product.sold} sold
                 </span>
-                <span className="text-xs text-main bg-main/10 px-2 py-0.5 rounded-full font-medium">
+                <span className="text-xs text-main bg-main/10 px-2 py-0.5 rounded-sm font-medium">
                   🔥 {product.hotTag}
                 </span>
               </div>
@@ -594,7 +708,7 @@ export default function ProductDetailPage() {
               </div>
 
               {/* Price */}
-              <div className="mt-5 bg-gradient-to-r from-main/5 to-transparent rounded-xl p-4">
+              <div className="mt-5 bg-gradient-to-r from-main/5 to-transparent rounded-sm p-4">
                 <p className="text-2xl font-bold text-black">
                   {product.priceRange}
                 </p>
@@ -606,13 +720,16 @@ export default function ProductDetailPage() {
 
               {/* Color selector */}
               <div className="mt-6">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
                   <label className="text-sm font-semibold text-black">
-                    color
+                    color:
                   </label>
+                  <span className="text-sm text-gray-650 font-bold uppercase">
+                    {product.colors[selectedColor].name}
+                  </span>
                   <button
-                    onClick={() => setIsDrawerOpen(true)}
-                    className="text-xs text-gray-500 border border-gray-200 rounded px-2 py-1 hover:border-gray-400 cursor-pointer"
+                    onClick={() => setIsModalOpen(true)}
+                    className="text-xs text-main border border-main/20 rounded px-2 py-0.5 hover:bg-main/5 transition cursor-pointer ml-auto"
                   >
                     Select now
                   </button>
@@ -682,8 +799,8 @@ export default function ProductDetailPage() {
                   Customization options (1)
                 </h3>
                 <div
-                  onClick={() => setIsDrawerOpen(true)}
-                  className="mt-2 rounded-xl border border-gray-200 p-4 flex items-center justify-between hover:border-main/50 transition cursor-pointer"
+                  onClick={() => setIsModalOpen(true)}
+                  className="mt-2 rounded-sm border border-gray-200 p-4 flex items-center justify-between hover:border-main/50 transition cursor-pointer"
                 >
                   <div>
                     <p className="text-sm font-medium text-black">
@@ -705,8 +822,8 @@ export default function ProductDetailPage() {
               {/* More customization */}
               <div className="mt-4">
                 <button
-                  onClick={() => setIsDrawerOpen(true)}
-                  className="w-full flex items-center justify-between rounded-xl border border-gray-200 p-4 hover:border-main/50 transition cursor-pointer"
+                  onClick={() => setIsModalOpen(true)}
+                  className="w-full flex items-center justify-between rounded-sm border border-gray-200 p-4 hover:border-main/50 transition cursor-pointer"
                 >
                   <span className="text-sm font-semibold text-black">
                     More customization options
@@ -716,7 +833,7 @@ export default function ProductDetailPage() {
               </div>
 
               {/* Supplier customization ability */}
-              <div className="mt-6 rounded-xl border border-gray-200 p-4">
+              <div className="mt-6 rounded-sm border border-gray-200 p-4">
                 <h3 className="text-sm font-semibold text-black flex items-center gap-2">
                   Supplier&apos;s customization ability
                   {supplier.verified && (
@@ -731,7 +848,7 @@ export default function ProductDetailPage() {
                       key={cap}
                       className="flex items-center gap-2 text-sm text-gray-600"
                     >
-                      <span className="size-1.5 rounded-full bg-gray-400" />
+                      <span className="size-1.5 rounded-sm bg-gray-400" />
                       {cap}
                     </li>
                   ))}
@@ -742,7 +859,7 @@ export default function ProductDetailPage() {
               <div className="mt-6">
                 <h3 className="text-sm font-semibold text-black flex items-center gap-2">
                   At a glance
-                  <span className="size-4 rounded-full border border-gray-300 grid place-items-center text-[10px] text-gray-400">
+                  <span className="size-4 rounded-sm border border-gray-300 grid place-items-center text-[10px] text-gray-400">
                     i
                   </span>
                 </h3>
@@ -769,6 +886,65 @@ export default function ProductDetailPage() {
                   </li>
                 </ul>
               </div>
+
+              {/* Delivery Dropdown & Timeline Cards */}
+              <div className="mt-6 border-t border-gray-100 pt-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="size-4 text-gray-500" />
+                    <span className="text-sm font-medium text-gray-700">Deliver to</span>
+                  </div>
+                  <div className="relative">
+                    <select
+                      value={deliveryCountry}
+                      onChange={(e) => setDeliveryCountry(e.target.value)}
+                      className="text-xs font-semibold text-black bg-gray-50 border border-gray-300 rounded-sm pl-3 pr-8 py-1.5 appearance-none hover:bg-gray-100 focus:outline-none cursor-pointer transition"
+                    >
+                      {Object.keys(deliveryOptions).map((country) => (
+                        <option key={country} value={country}>
+                          {country}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 size-3.5 text-gray-500 pointer-events-none" />
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  {/* Delivery Card */}
+                  <div className="flex items-start gap-3 p-3 bg-slate-50 border border-slate-200/60 rounded-sm">
+                    <div className="mt-0.5">
+                      <Truck className="size-4 text-gray-700" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-black">
+                        {deliveryOptions[deliveryCountry].freeDelivery}
+                      </p>
+                      <p className="text-[11px] text-gray-500 mt-0.5">
+                        {deliveryOptions[deliveryCountry].expressDelivery}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Returns Card */}
+                  <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200/60 rounded-sm cursor-pointer hover:bg-slate-100/40 transition">
+                    <div className="flex items-start gap-3">
+                      <div className="mt-0.5">
+                        <span className="text-sm font-bold text-gray-700 leading-none">⇄</span>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-black">
+                          {deliveryOptions[deliveryCountry].returns}
+                        </p>
+                        <p className="text-[11px] text-gray-500 mt-0.5">
+                          {deliveryOptions[deliveryCountry].warranty}
+                        </p>
+                      </div>
+                    </div>
+                    <ChevronRight className="size-4 text-gray-400" />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -778,9 +954,12 @@ export default function ProductDetailPage() {
       <section className="bg-white border-t border-gray-100">
         <div className="mx-auto max-w-7xl px-4 py-8">
           <h2 className="text-lg font-bold text-black mb-5">
-            Other recommendations for your business
+           Frequently Bought Together
           </h2>
-          <FrequentlyBoughtCarousel items={frequentlyBought} />
+          <FrequentlyBoughtCarousel
+            items={frequentlyBought}
+            onAddToCart={handleAddFrequentlyBoughtToCart}
+          />
         </div>
       </section>
 
@@ -829,7 +1008,7 @@ export default function ProductDetailPage() {
                 <h2 className="text-lg font-bold text-black mb-4">
                   Key attributes
                 </h2>
-                <div className="rounded-xl border border-gray-200 overflow-hidden">
+                <div className="rounded-sm border border-gray-200 overflow-hidden">
                   <div className="grid grid-cols-2">
                     {keyAttributes.map(([key, value], i) => (
                       <div
@@ -894,14 +1073,14 @@ export default function ProductDetailPage() {
 
                 {/* Filter pills */}
                 <div className="flex gap-2 mt-4">
-                  <button className="px-3 py-1.5 rounded-full text-xs font-medium border border-black text-black bg-white">
+                  <button className="px-3 py-1.5 rounded-sm text-xs font-medium border border-black text-black bg-white">
                     All
                   </button>
-                  <button className="px-3 py-1.5 rounded-full text-xs text-gray-500 border border-gray-200 hover:border-gray-400 flex items-center gap-1">
+                  <button className="px-3 py-1.5 rounded-sm text-xs text-gray-500 border border-gray-200 hover:border-gray-400 flex items-center gap-1">
                     Rating <ChevronDown className="size-3" />
                   </button>
                   <div className="flex-1" />
-                  <button className="px-3 py-1.5 rounded-full text-xs text-gray-500 border border-gray-200 hover:border-gray-400 flex items-center gap-1">
+                  <button className="px-3 py-1.5 rounded-sm text-xs text-gray-500 border border-gray-200 hover:border-gray-400 flex items-center gap-1">
                     Sort by: Most relevant <ChevronDown className="size-3" />
                   </button>
                 </div>
@@ -914,7 +1093,7 @@ export default function ProductDetailPage() {
                       className="border-b border-gray-100 pb-6 last:border-0"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="size-10 rounded-full bg-green-600 text-white grid place-items-center text-sm font-bold">
+                        <div className="size-10 rounded-sm bg-green-600 text-white grid place-items-center text-sm font-bold">
                           {rev.user[0].toUpperCase()}
                         </div>
                         <div className="flex-1">
@@ -985,9 +1164,9 @@ export default function ProductDetailPage() {
                 <h2 className="text-lg font-bold text-black mb-4">
                   Know your supplier
                 </h2>
-                <div className="rounded-xl border border-gray-200 p-5">
+                <div className="rounded-sm border border-gray-200 p-5">
                   <div className="flex items-start gap-4">
-                    <div className="size-14 rounded-xl bg-main/10 grid place-items-center shrink-0">
+                    <div className="size-14 rounded-sm bg-main/10 grid place-items-center shrink-0">
                       <span className="text-main font-bold text-xl">H</span>
                     </div>
                     <div>
@@ -1079,9 +1258,9 @@ export default function ProductDetailPage() {
             <div className="hidden lg:block">
               <div className="sticky top-[65px] space-y-4">
                 {/* More customization */}
-                <div className="rounded-xl border border-gray-200 p-4">
+                <div className="rounded-sm border border-gray-200 p-4">
                   <button
-                    onClick={() => setIsDrawerOpen(true)}
+                    onClick={() => setIsModalOpen(true)}
                     className="w-full flex items-center justify-between text-sm font-semibold text-black cursor-pointer"
                   >
                     More customization options
@@ -1093,7 +1272,7 @@ export default function ProductDetailPage() {
                 </div>
 
                 {/* Supplier abilities */}
-                <div className="rounded-xl border border-gray-200 p-4">
+                <div className="rounded-sm border border-gray-200 p-4">
                   <h4 className="text-sm font-semibold text-black flex items-center gap-2">
                     Supplier&apos;s customization ability
                     <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-main bg-main/10 px-1.5 py-0.5 rounded">
@@ -1106,7 +1285,7 @@ export default function ProductDetailPage() {
                         key={cap}
                         className="flex items-center gap-2 text-xs text-gray-600"
                       >
-                        <span className="size-1 rounded-full bg-gray-400" />
+                        <span className="size-1 rounded-sm bg-gray-400" />
                         {cap}
                       </li>
                     ))}
@@ -1114,7 +1293,7 @@ export default function ProductDetailPage() {
                 </div>
 
                 {/* Shipping */}
-                <div className="rounded-xl border border-gray-200 p-4">
+                <div className="rounded-sm border border-gray-200 p-4">
                   <h4 className="text-sm font-bold text-black flex items-center gap-1">
                     <Truck className="size-4" /> Shipping
                   </h4>
@@ -1125,7 +1304,7 @@ export default function ProductDetailPage() {
                 </div>
 
                 {/* Order protection */}
-                <div className="rounded-xl border border-gray-200 p-4">
+                <div className="rounded-sm border border-gray-200 p-4">
                   <h4 className="text-sm font-bold text-black">
                     FirstUno order protection
                     <ChevronRight className="inline size-3 ml-1 text-gray-400" />
@@ -1166,11 +1345,11 @@ export default function ProductDetailPage() {
                 </div>
 
                 {/* CTA buttons */}
-                <button className="w-full py-3 rounded-full bg-main text-white font-semibold text-sm hover:opacity-90 transition flex items-center justify-center gap-2">
+                <button className="w-full py-3 rounded-sm bg-main text-white font-semibold text-sm hover:opacity-90 transition flex items-center justify-center gap-2">
                   <Mail className="size-4" />
                   Send inquiry
                 </button>
-                <button className="w-full py-3 rounded-full border-2 border-gray-800 text-black font-semibold text-sm hover:bg-gray-50 transition flex items-center justify-center gap-2">
+                <button className="w-full py-3 rounded-sm border-2 border-gray-800 text-black font-semibold text-sm hover:bg-gray-50 transition flex items-center justify-center gap-2">
                   <MessageCircle className="size-4" />
                   Chat now
                 </button>
@@ -1188,6 +1367,18 @@ export default function ProductDetailPage() {
         </div>
       </section>
 
+      <section className="bg-white border-t border-gray-100">
+        <div className="mx-auto max-w-7xl px-4 py-8">
+          <h2 className="text-lg font-bold text-black mb-5">
+            Other recommendations for your business
+          </h2>
+          <FrequentlyBoughtCarousel
+            items={frequentlyBought}
+            onAddToCart={handleAddFrequentlyBoughtToCart}
+          />
+        </div>
+      </section>
+
       {/* ═══════ SECTION 4: FAQ ═══════ */}
       <section className="bg-gray-50 border-t border-gray-200">
         <div className="mx-auto max-w-7xl px-4 py-10">
@@ -1198,7 +1389,7 @@ export default function ProductDetailPage() {
             {faqs.map((faq, i) => (
               <div
                 key={i}
-                className="rounded-xl border border-gray-200 bg-white overflow-hidden"
+                className="rounded-sm border border-gray-200 bg-white overflow-hidden"
               >
                 <button
                   onClick={() => toggleFaq(i)}
@@ -1228,44 +1419,34 @@ export default function ProductDetailPage() {
 
       <Footer />
 
-      {/* Side variations drawer overlay */}
-      <div
-        className={`fixed inset-0 z-50 overflow-hidden transition-opacity duration-300 ${
-          isDrawerOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        }`}
-        aria-modal="true"
-        role="dialog"
-      >
-        {/* Backdrop */}
-        <div
-          className="absolute inset-0 bg-black/60 backdrop-blur-[2px]"
-          onClick={() => setIsDrawerOpen(false)}
-        />
-
-        {/* Drawer container */}
-        <div className="absolute inset-y-0 right-0 pl-10 max-w-full flex">
+      {/* Center variations modal overlay */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+          {/* Backdrop */}
           <div
-            className={`w-screen max-w-md bg-white shadow-2xl flex flex-col h-full transform transition-transform duration-300 ease-in-out ${
-              isDrawerOpen ? "translate-x-0" : "translate-x-full"
-            }`}
-          >
+            className="absolute inset-0 bg-black/60 "
+            onClick={() => setIsModalOpen(false)}
+          />
+
+          {/* Modal Content container */}
+          <div className="relative bg-white rounded-sm w-full max-w-lg shadow-2xl flex flex-col max-h-[85vh] overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200">
             {/* Header */}
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
               <h2 className="text-base font-bold text-black">Select variations and quantity</h2>
               <button
-                onClick={() => setIsDrawerOpen(false)}
-                className="p-1 rounded-full text-gray-400 hover:text-black hover:bg-gray-100 transition cursor-pointer"
+                onClick={() => setIsModalOpen(false)}
+                className="p-1 rounded-sm text-gray-400 hover:text-black hover:bg-gray-100 transition cursor-pointer"
               >
                 <X className="size-5" />
               </button>
             </div>
 
-            {/* Body */}
-            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
-              {/* Product card info */}
+            {/* Scrollable Body */}
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+              {/* Product Info Card */}
               <div className="flex items-start gap-3 border-b border-gray-100 pb-4">
                 <div
-                  className="size-16 rounded-lg bg-gray-100 shrink-0 flex items-center justify-center overflow-hidden border border-gray-200"
+                  className="size-16 rounded-lg shrink-0 flex items-center justify-center overflow-hidden border border-gray-200"
                   style={{ backgroundColor: productImages[currentImage].color }}
                 >
                   <Camera className="size-5 text-gray-400/60" />
@@ -1283,7 +1464,7 @@ export default function ProductDetailPage() {
                 </div>
               </div>
 
-              {/* Color swatches */}
+              {/* Color Swatches */}
               <div>
                 <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                   color: <span className="text-black font-semibold uppercase">{product.colors[selectedColor].name}</span>
@@ -1349,7 +1530,7 @@ export default function ProductDetailPage() {
                 <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                   video memory capacity
                 </h4>
-                <div className="rounded-xl border border-gray-200 p-3 bg-gray-50/50 space-y-3">
+                <div className="rounded-sm border border-gray-200 p-3 bg-gray-50/50 space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold text-black bg-white border border-gray-200 px-2 py-1.5 rounded shadow-sm">
                       Main memory allocated memory
@@ -1360,7 +1541,7 @@ export default function ProductDetailPage() {
                     <span className="text-xs text-gray-500">Select quantity:</span>
                     <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden bg-white">
                       <button
-                        onClick={() => setQuantity((q) => Math.max(0, q - 1))}
+                        onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                         className="px-2.5 py-1.5 hover:bg-gray-100 text-gray-500 font-bold transition cursor-pointer"
                       >
                         <Minus className="size-3" />
@@ -1384,7 +1565,7 @@ export default function ProductDetailPage() {
                 <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                   <Settings2Icon /> Customization
                 </h4>
-                <div className="rounded-xl border border-gray-200 p-3 bg-gray-50/50 space-y-3">
+                <div className="rounded-sm border border-gray-200 p-3 bg-gray-50/50 space-y-3">
                   <div>
                     <p className="text-xs font-bold text-black">
                       Logo/graphic design (optional)
@@ -1432,10 +1613,10 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Footer */}
-            <div className="p-6 border-t border-gray-150 bg-gray-50">
-              <div className="flex items-center justify-between mb-4">
+            <div className="p-6 border-t border-gray-150 bg-gray-50 flex flex-col gap-3">
+              <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-gray-500 uppercase">Subtotal</span>
-                <span className="text-xl font-bold text-main">
+                <span className="text-base font-extrabold text-main">
                   ₦
                   {(
                     quantity * 204061 +
@@ -1443,18 +1624,190 @@ export default function ProductDetailPage() {
                   ).toLocaleString("en-US", { minimumFractionDigits: 2 })}
                 </span>
               </div>
-              <div className="flex gap-3">
-                <button className="flex-1 py-3 rounded-full bg-main text-white font-semibold text-xs hover:opacity-90 transition flex items-center justify-center gap-1.5 cursor-pointer shadow-sm">
-                  <Mail className="size-4" />
-                  Send inquiry
-                </button>
-                <button className="flex-1 py-3 rounded-full border border-gray-800 bg-white text-black font-semibold text-xs hover:bg-gray-100 transition flex items-center justify-center gap-1.5 cursor-pointer">
-                  <MessageCircle className="size-4" />
-                  Chat now
-                </button>
-              </div>
+              <button
+                onClick={addToCart}
+                className="w-full py-3 rounded-sm bg-main text-white font-extrabold text-sm hover:opacity-95 transition flex items-center justify-center gap-1.5 cursor-pointer shadow"
+              >
+                <ShoppingCart className="size-4" />
+                Add to Cart
+              </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Side Cart Drawer */}
+      <div
+        className={`fixed inset-0 z-50 overflow-hidden  duration-300 ${
+          isCartOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+        aria-modal="true"
+        role="dialog"
+      >
+        {/* Backdrop */}
+        <div
+          className="absolute inset-0 bg-black/60"
+          onClick={() => setIsCartOpen(false)}
+        />
+
+        {/* Drawer container */}
+        <div className="absolute inset-y-0 right-0 pl-10 max-w-full flex">
+          <div
+            className={`w-screen max-w-md bg-white shadow-2xl flex flex-col h-full transform transition-transform duration-300 ease-in-out ${
+              isCartOpen ? "translate-x-0" : "translate-x-full"
+            }`}
+          >
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+              <h2 className="text-base font-bold text-black flex items-center gap-2">
+                <ShoppingCart className="size-5 text-main" />
+                Shopping Cart ({cart.reduce((sum, item) => sum + item.quantity, 0)})
+              </h2>
+              <button
+                onClick={() => setIsCartOpen(false)}
+                className="p-1 rounded-sm text-gray-400 hover:text-black hover:bg-gray-100 transition cursor-pointer"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+              {cart.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center text-center gap-3">
+                  <div className="size-16 rounded-sm bg-gray-50 flex items-center justify-center text-gray-300">
+                    <ShoppingCart className="size-8" />
+                  </div>
+                  <p className="text-sm font-bold text-black">Your cart is empty</p>
+                  <p className="text-xs text-gray-400">Add products to start your order</p>
+                  <button
+                    onClick={() => {
+                      setIsCartOpen(false);
+                      setIsModalOpen(true);
+                    }}
+                    className="mt-2 px-5 py-2 rounded-sm bg-main text-white font-bold text-xs hover:opacity-90 transition cursor-pointer"
+                  >
+                    Select Variations
+                  </button>
+                </div>
+              ) : (
+                cart.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-start gap-3 p-3 rounded-sm border border-gray-200 bg-gray-55/30 relative group"
+                  >
+                    <div
+                      className="size-16 rounded-lg shrink-0 flex items-center justify-center overflow-hidden border border-gray-200"
+                      style={{ backgroundColor: item.imageColor }}
+                    >
+                      <Camera className="size-5 text-gray-300" />
+                    </div>
+                    <div className="flex-1 min-w-0 pr-6">
+                      <h3 className="text-xs font-bold text-black line-clamp-2 leading-tight">
+                        {item.title}
+                      </h3>
+                      <p className="text-[10px] text-gray-400 mt-1">
+                        Specs: <span className="text-gray-700 font-semibold">{item.color} / {item.capacity}</span>
+                      </p>
+                      <div className="flex items-center justify-between mt-3">
+                        <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden bg-white">
+                          <button
+                            onClick={() => updateCartQty(item.id, item.quantity - 1)}
+                            className="px-2 py-1 hover:bg-gray-100 text-gray-500 font-bold transition cursor-pointer"
+                          >
+                            <Minus className="size-2.5" />
+                          </button>
+                          <span className="px-2 py-0.5 text-xs font-bold text-black min-w-6 text-center">
+                            {item.quantity}
+                          </span>
+                          <button
+                            onClick={() => updateCartQty(item.id, item.quantity + 1)}
+                            className="px-2 py-1 hover:bg-gray-100 text-gray-500 font-bold transition cursor-pointer"
+                          >
+                            <Plus className="size-2.5" />
+                          </button>
+                        </div>
+                        <span className="text-xs font-bold text-black">
+                          ₦{(item.price * item.quantity).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                    </div>
+                    {/* Delete button */}
+                    <button
+                      onClick={() => removeFromCart(item.id)}
+                      className="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition cursor-pointer p-1 rounded-sm hover:bg-red-50"
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Footer */}
+            {cart.length > 0 && (
+              <div className="p-6 border-t border-gray-150 bg-gray-55 space-y-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>Subtotal</span>
+                    <span className="font-semibold text-black">
+                      ₦
+                      {cart
+                        .reduce((sum, item) => sum + item.price * item.quantity, 0)
+                        .toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>Shipping</span>
+                    <span className="font-semibold text-black">Negotiated</span>
+                  </div>
+                  <div className="flex justify-between text-sm font-bold text-black pt-2 border-t border-gray-200">
+                    <span>Total Amount</span>
+                    <span className="text-main">
+                      ₦
+                      {cart
+                        .reduce((sum, item) => sum + item.price * item.quantity, 0)
+                        .toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button className="flex-1 py-3 rounded-sm bg-main text-white font-semibold text-xs hover:opacity-90 transition flex items-center justify-center gap-1.5 cursor-pointer shadow-sm">
+                    Proceed to Escrow Checkout
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Sticky Bottom Bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-main text-white py-4 px-6 shadow-lg border-t border-amber-500/20 flex items-center justify-between">
+        <div className="flex flex-col">
+          <span className="text-xs font-bold uppercase tracking-wider text-white/80">
+            Selected Option Specs:
+          </span>
+          <span className="text-sm font-black truncate max-w-xs md:max-w-md lg:max-w-xl">
+            {product.colors[selectedColor].name} / {product.capacities[selectedCapacity]}
+          </span>
+        </div>
+        <div className="flex items-center gap-6">
+          <div className="text-right">
+            <span className="block text-xs font-bold uppercase text-white/80 tracking-wider">
+              Total Amount
+            </span>
+            <span className="text-lg font-black">
+              ₦{(204061 * (quantity > 0 ? quantity : 1)).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+            </span>
+          </div>
+          <button
+            onClick={addToCart}
+            className="bg-white text-[#f5a623] hover:bg-white/95 px-6 py-2.5 rounded-sm font-black text-xs uppercase tracking-wider shadow hover:scale-102 transition cursor-pointer"
+          >
+            Buy Now
+          </button>
         </div>
       </div>
     </div>
@@ -1482,80 +1835,4 @@ function ChevronRightIcon() {
   return <ChevronRight className="size-3 text-gray-400" />;
 }
 
-/* Frequently Bought Together Carousel */
-function FrequentlyBoughtCarousel({
-  items,
-}: {
-  items: typeof frequentlyBought;
-}) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(true);
-
-  const checkScroll = () => {
-    if (!scrollRef.current) return;
-    const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-    setCanScrollLeft(scrollLeft > 5);
-    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 5);
-  };
-
-  useEffect(() => {
-    checkScroll();
-    const el = scrollRef.current;
-    el?.addEventListener("scroll", checkScroll, { passive: true });
-    return () => el?.removeEventListener("scroll", checkScroll);
-  }, []);
-
-  const scroll = (dir: "left" | "right") => {
-    if (!scrollRef.current) return;
-    const amount = 280;
-    scrollRef.current.scrollBy({
-      left: dir === "left" ? -amount : amount,
-      behavior: "smooth",
-    });
-  };
-
-  return (
-    <div className="relative group">
-      {canScrollLeft && (
-        <button
-          onClick={() => scroll("left")}
-          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 z-10 size-10 rounded-full bg-white shadow-lg border border-gray-200 grid place-items-center hover:bg-gray-50 transition opacity-0 group-hover:opacity-100"
-        >
-          <ChevronLeft className="size-5 text-gray-700" />
-        </button>
-      )}
-      <div
-        ref={scrollRef}
-        className="flex gap-4 overflow-x-auto scrollbar-hide pb-2"
-        style={{ scrollbarWidth: "none" }}
-      >
-        {items.map((item, i) => (
-          <a key={i} href="#" className="shrink-0 w-[200px] group/card">
-            <div className="w-full aspect-square rounded-lg bg-gray-100 flex items-center justify-center">
-              <Camera className="size-8 text-gray-300" />
-            </div>
-            <div className="mt-2">
-              <span className="inline-block px-1.5 py-0.5 rounded text-[9px] font-bold bg-main/10 text-main mb-1">
-                DOC
-              </span>
-              <p className="text-xs text-black line-clamp-2 min-h-[32px] group-hover/card:text-main">
-                {item.title}
-              </p>
-              <p className="text-sm font-bold text-black mt-1">{item.price}</p>
-              <p className="text-[10px] text-gray-500">MOQ: {item.moq}</p>
-            </div>
-          </a>
-        ))}
-      </div>
-      {canScrollRight && (
-        <button
-          onClick={() => scroll("right")}
-          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 z-10 size-10 rounded-full bg-white shadow-lg border border-gray-200 grid place-items-center hover:bg-gray-50 transition opacity-0 group-hover:opacity-100"
-        >
-          <ChevronRight className="size-5 text-gray-700" />
-        </button>
-      )}
-    </div>
-  );
-}
+// FrequentlyBoughtCarousel imported from "@/components/product/frequentlyBoughtCarousel"
