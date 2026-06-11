@@ -16,6 +16,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import Products from "./Products";
+import NavMenu from "./NavMenu";
 
 const categories = [
   { name: "Phones & Tablets", count: "85,707 ads", Icon: Smartphone },
@@ -43,6 +44,7 @@ export default function Header({
   cartCount?: number;
 }) {
   const [megaOpen, setMegaOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -153,8 +155,9 @@ export default function Header({
           </button>
 
           <button
+            onClick={() => setMobileMenuOpen(true)}
             aria-label="Menu"
-            className="md:hidden grid place-items-center size-10 rounded-lg border border-gray-200 text-black"
+            className="md:hidden grid place-items-center size-10 rounded-sm border border-gray-200 text-black hover:bg-gray-50 active:scale-95 transition cursor-pointer"
           >
             <Menu className="size-5" />
           </button>
@@ -210,6 +213,8 @@ export default function Header({
           </div>
         </div>
       )}
+      {/* Mobile navigation menu drawer */}
+      <NavMenu isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
     </header>
   );
 }

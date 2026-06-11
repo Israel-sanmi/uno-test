@@ -202,12 +202,15 @@ const tabItems = [
   { id: "description", label: "Description" },
 ];
 
-const deliveryOptions: Record<string, {
-  freeDelivery: string;
-  expressDelivery: string;
-  returns: string;
-  warranty: string;
-}> = {
+const deliveryOptions: Record<
+  string,
+  {
+    freeDelivery: string;
+    expressDelivery: string;
+    returns: string;
+    warranty: string;
+  }
+> = {
   "United Kingdom": {
     freeDelivery: "Free delivery by 18 - 20 Jun",
     expressDelivery: "Express delivery by 15-17 Jun from £5.00",
@@ -220,13 +223,13 @@ const deliveryOptions: Record<string, {
     returns: "Free 30-day returns",
     warranty: "12 months seller warranty",
   },
-  "Nigeria": {
+  Nigeria: {
     freeDelivery: "Free delivery by 22 - 25 Jun",
     expressDelivery: "Express delivery by 17-20 Jun from ₦15,000",
     returns: "Free 15-day returns",
     warranty: "12 months local warranty",
   },
-  "Germany": {
+  Germany: {
     freeDelivery: "Free delivery by 19 - 21 Jun",
     expressDelivery: "Express delivery by 16-18 Jun from €10.00",
     returns: "Free 30-day returns",
@@ -246,20 +249,25 @@ export default function ProductDetailPage() {
   const [thumbStart, setThumbStart] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [cart, setCart] = useState<{
-    id: string;
-    title: string;
-    price: number;
-    color: string;
-    capacity: string;
-    quantity: number;
-    imageColor: string;
-  }[]>([]);
+  const [cart, setCart] = useState<
+    {
+      id: string;
+      title: string;
+      price: number;
+      color: string;
+      capacity: string;
+      quantity: number;
+      imageColor: string;
+    }[]
+  >([]);
   const [quantity, setQuantity] = useState(1);
   const [isLaserPrintingSelected, setIsLaserPrintingSelected] = useState(false);
   const [deliveryCountry, setDeliveryCountry] = useState("United Kingdom");
 
-  const handleAddFrequentlyBoughtToCart = (item: { title: string; price: string }) => {
+  const handleAddFrequentlyBoughtToCart = (item: {
+    title: string;
+    price: string;
+  }) => {
     const cleanedPrice = parseFloat(item.price.replace(/[^\d]/g, "")) || 204061;
     const newItem = {
       id: `frequently-bought-${item.title}`,
@@ -297,7 +305,9 @@ export default function ProductDetailPage() {
     };
 
     setCart((prevCart) => {
-      const existingIndex = prevCart.findIndex((item) => item.id === newItem.id);
+      const existingIndex = prevCart.findIndex(
+        (item) => item.id === newItem.id,
+      );
       if (existingIndex > -1) {
         const nextCart = [...prevCart];
         nextCart[existingIndex].quantity += finalQty;
@@ -316,7 +326,9 @@ export default function ProductDetailPage() {
       return;
     }
     setCart((prevCart) =>
-      prevCart.map((item) => (item.id === id ? { ...item, quantity: newQty } : item))
+      prevCart.map((item) =>
+        item.id === id ? { ...item, quantity: newQty } : item,
+      ),
     );
   };
 
@@ -439,9 +451,30 @@ export default function ProductDetailPage() {
             {/* ── Left: Image Gallery (sticky) ── */}
             <div className="lg:col-span-5 lg:self-start lg:sticky lg:top-4">
               {/* Main image + thumbnails */}
-              <div className="flex gap-3">
-                {/* Vertical thumbnails */}
-                <div className="flex flex-col items-center gap-1 w-[72px] shrink-0">
+              <div className="flex flex-col md:flex-row gap-3">
+                {/* Horizontal thumbnails for mobile / tablet */}
+                <div className="flex md:hidden gap-2 overflow-x-auto pb-2 scrollbar-hide" style={{ scrollbarWidth: "none" }}>
+                  {productImages.map((img, i) => (
+                    <button
+                      key={img.id}
+                      onClick={() => {
+                        setCurrentImage(i);
+                        setMediaTab("photos");
+                      }}
+                      className={`w-[60px] h-[60px] shrink-0 rounded-sm border-2 transition overflow-hidden flex items-center justify-center ${
+                        currentImage === i
+                          ? "border-main"
+                          : "border-gray-200 hover:border-gray-400"
+                      }`}
+                      style={{ backgroundColor: img.color }}
+                    >
+                      <Camera className="size-4 text-gray-400" />
+                    </button>
+                  ))}
+                </div>
+
+                {/* Vertical thumbnails for desktop */}
+                <div className="hidden md:flex flex-col items-center gap-1 w-[72px] shrink-0">
                   {canScrollThumbUp && (
                     <button
                       onClick={() => setThumbStart((s) => Math.max(0, s - 1))}
@@ -608,7 +641,7 @@ export default function ProductDetailPage() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-4 gap-3 mt-4 text-center">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 text-center">
                       <div>
                         <p className="text-sm font-bold text-black">
                           {supplier.storeRating}/5
@@ -717,7 +750,12 @@ export default function ProductDetailPage() {
                   <span className="text-black font-medium">{product.moq}</span>
                 </p>
               </div>
-
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="text-xs text-main border border-main/20 rounded px-2 py-0.5 hover:bg-main/5 transition cursor-pointer ml-auto"
+              >
+                Select now
+              </button>
               {/* Color selector */}
               <div className="mt-6">
                 <div className="flex items-center gap-3">
@@ -727,13 +765,8 @@ export default function ProductDetailPage() {
                   <span className="text-sm text-gray-650 font-bold uppercase">
                     {product.colors[selectedColor].name}
                   </span>
-                  <button
-                    onClick={() => setIsModalOpen(true)}
-                    className="text-xs text-main border border-main/20 rounded px-2 py-0.5 hover:bg-main/5 transition cursor-pointer ml-auto"
-                  >
-                    Select now
-                  </button>
                 </div>
+
                 <div className="flex gap-2 mt-2">
                   {product.colors.map((c, i) => (
                     <button
@@ -892,7 +925,9 @@ export default function ProductDetailPage() {
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <MapPin className="size-4 text-gray-500" />
-                    <span className="text-sm font-medium text-gray-700">Deliver to</span>
+                    <span className="text-sm font-medium text-gray-700">
+                      Deliver to
+                    </span>
                   </div>
                   <div className="relative">
                     <select
@@ -930,7 +965,9 @@ export default function ProductDetailPage() {
                   <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200/60 rounded-sm cursor-pointer hover:bg-slate-100/40 transition">
                     <div className="flex items-start gap-3">
                       <div className="mt-0.5">
-                        <span className="text-sm font-bold text-gray-700 leading-none">⇄</span>
+                        <span className="text-sm font-bold text-gray-700 leading-none">
+                          ⇄
+                        </span>
                       </div>
                       <div>
                         <p className="text-xs font-semibold text-black">
@@ -954,7 +991,7 @@ export default function ProductDetailPage() {
       <section className="bg-white border-t border-gray-100">
         <div className="mx-auto max-w-7xl px-4 py-8">
           <h2 className="text-lg font-bold text-black mb-5">
-           Frequently Bought Together
+            Frequently Bought Together
           </h2>
           <FrequentlyBoughtCarousel
             items={frequentlyBought}
@@ -971,7 +1008,7 @@ export default function ProductDetailPage() {
           className="sticky top-0 z-30 bg-white border-b border-gray-200 shadow-sm"
         >
           <div className="mx-auto max-w-7xl px-4">
-            <nav className="flex gap-8">
+            <nav className="flex gap-6 overflow-x-auto scrollbar-hide pb-0" style={{ scrollbarWidth: "none" }}>
               {tabItems.map((tab) => (
                 <button
                   key={tab.id}
@@ -1009,22 +1046,16 @@ export default function ProductDetailPage() {
                   Key attributes
                 </h2>
                 <div className="rounded-sm border border-gray-200 overflow-hidden">
-                  <div className="grid grid-cols-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 divide-gray-150">
                     {keyAttributes.map(([key, value], i) => (
                       <div
                         key={key}
-                        className={`flex items-stretch ${
-                          i % 2 === 0 ? "" : ""
-                        } ${
-                          i < keyAttributes.length - 2
-                            ? "border-b border-gray-100"
-                            : ""
-                        }`}
+                        className="flex items-stretch border-b border-gray-100 last:border-b-0 sm:even:border-l sm:even:border-gray-100"
                       >
-                        <div className="w-[140px] shrink-0 bg-gray-50 px-4 py-3 text-xs text-gray-500">
+                        <div className="w-[120px] sm:w-[140px] shrink-0 bg-gray-50 px-3 sm:px-4 py-3 text-[11px] sm:text-xs text-gray-500">
                           {key}
                         </div>
-                        <div className="flex-1 px-4 py-3 text-sm font-semibold text-black">
+                        <div className="flex-1 px-3 sm:px-4 py-3 text-xs sm:text-sm font-semibold text-black">
                           {value}
                         </div>
                       </div>
@@ -1072,14 +1103,15 @@ export default function ProductDetailPage() {
                 </div>
 
                 {/* Filter pills */}
-                <div className="flex gap-2 mt-4">
-                  <button className="px-3 py-1.5 rounded-sm text-xs font-medium border border-black text-black bg-white">
-                    All
-                  </button>
-                  <button className="px-3 py-1.5 rounded-sm text-xs text-gray-500 border border-gray-200 hover:border-gray-400 flex items-center gap-1">
-                    Rating <ChevronDown className="size-3" />
-                  </button>
-                  <div className="flex-1" />
+                <div className="flex flex-wrap gap-2 mt-4 items-center justify-between sm:justify-start">
+                  <div className="flex gap-2">
+                    <button className="px-3 py-1.5 rounded-sm text-xs font-medium border border-black text-black bg-white">
+                      All
+                    </button>
+                    <button className="px-3 py-1.5 rounded-sm text-xs text-gray-500 border border-gray-200 hover:border-gray-400 flex items-center gap-1">
+                      Rating <ChevronDown className="size-3" />
+                    </button>
+                  </div>
                   <button className="px-3 py-1.5 rounded-sm text-xs text-gray-500 border border-gray-200 hover:border-gray-400 flex items-center gap-1">
                     Sort by: Most relevant <ChevronDown className="size-3" />
                   </button>
@@ -1119,7 +1151,7 @@ export default function ProductDetailPage() {
                           </div>
                         </div>
                       </div>
-                      <div className="mt-3 text-xs text-gray-500 space-x-3">
+                      <div className="mt-3 text-xs text-gray-550 flex flex-wrap gap-x-4 gap-y-1.5">
                         <span>
                           model number:{" "}
                           <strong className="text-black">
@@ -1254,9 +1286,9 @@ export default function ProductDetailPage() {
               </div>
             </div>
 
-            {/* ── Right sidebar (sticky) ── */}
-            <div className="hidden lg:block">
-              <div className="sticky top-[65px] space-y-4">
+            {/* ── Right sidebar (sticky on desktop) ── */}
+            <div className="w-full lg:w-auto mt-8 lg:mt-0">
+              <div className="lg:sticky lg:top-[65px] space-y-4">
                 {/* More customization */}
                 <div className="rounded-sm border border-gray-200 p-4">
                   <button
@@ -1295,11 +1327,11 @@ export default function ProductDetailPage() {
                 {/* Shipping */}
                 <div className="rounded-sm border border-gray-200 p-4">
                   <h4 className="text-sm font-bold text-black flex items-center gap-1">
-                    <Truck className="size-4" /> Shipping
+                    <Truck className="size-4" /> Delivery
                   </h4>
                   <p className="text-xs text-gray-500 mt-2">
-                    Shipping fee and delivery date to be negotiated. Chat with
-                    supplier now for more details.
+                    Delivery fee and date can be negotiated. Chat with seller
+                    now for more details.
                   </p>
                 </div>
 
@@ -1421,7 +1453,11 @@ export default function ProductDetailPage() {
 
       {/* Center variations modal overlay */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+        >
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/60 "
@@ -1432,7 +1468,9 @@ export default function ProductDetailPage() {
           <div className="relative bg-white rounded-sm w-full max-w-lg shadow-2xl flex flex-col max-h-[85vh] overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200">
             {/* Header */}
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-              <h2 className="text-base font-bold text-black">Select variations and quantity</h2>
+              <h2 className="text-base font-bold text-black">
+                Select variations and quantity
+              </h2>
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="p-1 rounded-sm text-gray-400 hover:text-black hover:bg-gray-100 transition cursor-pointer"
@@ -1467,7 +1505,10 @@ export default function ProductDetailPage() {
               {/* Color Swatches */}
               <div>
                 <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                  color: <span className="text-black font-semibold uppercase">{product.colors[selectedColor].name}</span>
+                  color:{" "}
+                  <span className="text-black font-semibold uppercase">
+                    {product.colors[selectedColor].name}
+                  </span>
                 </h4>
                 <div className="flex gap-2">
                   {product.colors.map((c, i) => (
@@ -1535,10 +1576,14 @@ export default function ProductDetailPage() {
                     <span className="text-xs font-semibold text-black bg-white border border-gray-200 px-2 py-1.5 rounded shadow-sm">
                       Main memory allocated memory
                     </span>
-                    <span className="text-sm font-bold text-black">₦204,061</span>
+                    <span className="text-sm font-bold text-black">
+                      ₦204,061
+                    </span>
                   </div>
                   <div className="flex items-center justify-between pt-2 border-t border-gray-150">
-                    <span className="text-xs text-gray-500">Select quantity:</span>
+                    <span className="text-xs text-gray-500">
+                      Select quantity:
+                    </span>
                     <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden bg-white">
                       <button
                         onClick={() => setQuantity((q) => Math.max(1, q - 1))}
@@ -1578,7 +1623,9 @@ export default function ProductDetailPage() {
 
                   <div className="flex items-center justify-between pt-3 border-t border-gray-200">
                     <button
-                      onClick={() => setIsLaserPrintingSelected(!isLaserPrintingSelected)}
+                      onClick={() =>
+                        setIsLaserPrintingSelected(!isLaserPrintingSelected)
+                      }
                       className="flex items-center gap-2 cursor-pointer group text-left"
                     >
                       <div
@@ -1588,7 +1635,9 @@ export default function ProductDetailPage() {
                             : "border-gray-300 bg-white group-hover:border-gray-400"
                         }`}
                       >
-                        {isLaserPrintingSelected && <Check className="size-3" />}
+                        {isLaserPrintingSelected && (
+                          <Check className="size-3" />
+                        )}
                       </div>
                       <span className="text-xs font-semibold text-black">
                         Laser Print logo
@@ -1607,7 +1656,8 @@ export default function ProductDetailPage() {
                   <Truck className="size-3.5 text-gray-400" /> Shipping
                 </h4>
                 <p className="text-xs text-gray-500 leading-relaxed">
-                  Shipping fee and delivery date to be negotiated. Chat with supplier now for more details.
+                  Shipping fee and delivery date can be negotiated. Chat with
+                  seller now for more details.
                 </p>
               </div>
             </div>
@@ -1615,12 +1665,16 @@ export default function ProductDetailPage() {
             {/* Footer */}
             <div className="p-6 border-t border-gray-150 bg-gray-50 flex flex-col gap-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-gray-500 uppercase">Subtotal</span>
+                <span className="text-xs font-bold text-gray-500 uppercase">
+                  Subtotal
+                </span>
                 <span className="text-base font-extrabold text-main">
                   ₦
                   {(
                     quantity * 204061 +
-                    (isLaserPrintingSelected && quantity >= 20 ? quantity * 3024 : 0)
+                    (isLaserPrintingSelected && quantity >= 20
+                      ? quantity * 3024
+                      : 0)
                   ).toLocaleString("en-US", { minimumFractionDigits: 2 })}
                 </span>
               </div>
@@ -1639,7 +1693,9 @@ export default function ProductDetailPage() {
       {/* Side Cart Drawer */}
       <div
         className={`fixed inset-0 z-50 overflow-hidden  duration-300 ${
-          isCartOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          isCartOpen
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none"
         }`}
         aria-modal="true"
         role="dialog"
@@ -1661,7 +1717,8 @@ export default function ProductDetailPage() {
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
               <h2 className="text-base font-bold text-black flex items-center gap-2">
                 <ShoppingCart className="size-5 text-main" />
-                Shopping Cart ({cart.reduce((sum, item) => sum + item.quantity, 0)})
+                Shopping Cart (
+                {cart.reduce((sum, item) => sum + item.quantity, 0)})
               </h2>
               <button
                 onClick={() => setIsCartOpen(false)}
@@ -1678,8 +1735,12 @@ export default function ProductDetailPage() {
                   <div className="size-16 rounded-sm bg-gray-50 flex items-center justify-center text-gray-300">
                     <ShoppingCart className="size-8" />
                   </div>
-                  <p className="text-sm font-bold text-black">Your cart is empty</p>
-                  <p className="text-xs text-gray-400">Add products to start your order</p>
+                  <p className="text-sm font-bold text-black">
+                    Your cart is empty
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    Add products to start your order
+                  </p>
                   <button
                     onClick={() => {
                       setIsCartOpen(false);
@@ -1707,12 +1768,17 @@ export default function ProductDetailPage() {
                         {item.title}
                       </h3>
                       <p className="text-[10px] text-gray-400 mt-1">
-                        Specs: <span className="text-gray-700 font-semibold">{item.color} / {item.capacity}</span>
+                        Specs:{" "}
+                        <span className="text-gray-700 font-semibold">
+                          {item.color} / {item.capacity}
+                        </span>
                       </p>
                       <div className="flex items-center justify-between mt-3">
                         <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden bg-white">
                           <button
-                            onClick={() => updateCartQty(item.id, item.quantity - 1)}
+                            onClick={() =>
+                              updateCartQty(item.id, item.quantity - 1)
+                            }
                             className="px-2 py-1 hover:bg-gray-100 text-gray-500 font-bold transition cursor-pointer"
                           >
                             <Minus className="size-2.5" />
@@ -1721,14 +1787,20 @@ export default function ProductDetailPage() {
                             {item.quantity}
                           </span>
                           <button
-                            onClick={() => updateCartQty(item.id, item.quantity + 1)}
+                            onClick={() =>
+                              updateCartQty(item.id, item.quantity + 1)
+                            }
                             className="px-2 py-1 hover:bg-gray-100 text-gray-500 font-bold transition cursor-pointer"
                           >
                             <Plus className="size-2.5" />
                           </button>
                         </div>
                         <span className="text-xs font-bold text-black">
-                          ₦{(item.price * item.quantity).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                          ₦
+                          {(item.price * item.quantity).toLocaleString(
+                            "en-US",
+                            { minimumFractionDigits: 2 },
+                          )}
                         </span>
                       </div>
                     </div>
@@ -1753,7 +1825,10 @@ export default function ProductDetailPage() {
                     <span className="font-semibold text-black">
                       ₦
                       {cart
-                        .reduce((sum, item) => sum + item.price * item.quantity, 0)
+                        .reduce(
+                          (sum, item) => sum + item.price * item.quantity,
+                          0,
+                        )
                         .toLocaleString("en-US", { minimumFractionDigits: 2 })}
                     </span>
                   </div>
@@ -1766,7 +1841,10 @@ export default function ProductDetailPage() {
                     <span className="text-main">
                       ₦
                       {cart
-                        .reduce((sum, item) => sum + item.price * item.quantity, 0)
+                        .reduce(
+                          (sum, item) => sum + item.price * item.quantity,
+                          0,
+                        )
                         .toLocaleString("en-US", { minimumFractionDigits: 2 })}
                     </span>
                   </div>
@@ -1784,27 +1862,32 @@ export default function ProductDetailPage() {
       </div>
 
       {/* Sticky Bottom Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-main text-white py-4 px-6 shadow-lg border-t border-amber-500/20 flex items-center justify-between">
-        <div className="flex flex-col">
-          <span className="text-xs font-bold uppercase tracking-wider text-white/80">
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-main text-white py-3 px-4 sm:px-6 shadow-lg border-t border-amber-500/20 flex flex-col sm:flex-row gap-3 sm:gap-6 items-center justify-between">
+        <div className="flex flex-col text-center sm:text-left w-full sm:w-auto">
+          <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-white/80">
             Selected Option Specs:
           </span>
-          <span className="text-sm font-black truncate max-w-xs md:max-w-md lg:max-w-xl">
-            {product.colors[selectedColor].name} / {product.capacities[selectedCapacity]}
+          <span className="text-xs sm:text-sm font-black truncate max-w-[280px] sm:max-w-md lg:max-w-xl mx-auto sm:mx-0">
+            {product.colors[selectedColor].name} /{" "}
+            {product.capacities[selectedCapacity]}
           </span>
         </div>
-        <div className="flex items-center gap-6">
-          <div className="text-right">
-            <span className="block text-xs font-bold uppercase text-white/80 tracking-wider">
+        <div className="flex items-center justify-between sm:justify-end gap-4 sm:gap-6 w-full sm:w-auto">
+          <div className="text-left sm:text-right">
+            <span className="block text-[10px] sm:text-xs font-bold uppercase text-white/80 tracking-wider">
               Total Amount
             </span>
-            <span className="text-lg font-black">
-              ₦{(204061 * (quantity > 0 ? quantity : 1)).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+            <span className="text-base sm:text-lg font-black">
+              ₦
+              {(204061 * (quantity > 0 ? quantity : 1)).toLocaleString(
+                "en-US",
+                { minimumFractionDigits: 2 },
+              )}
             </span>
           </div>
           <button
             onClick={addToCart}
-            className="bg-white text-[#f5a623] hover:bg-white/95 px-6 py-2.5 rounded-sm font-black text-xs uppercase tracking-wider shadow hover:scale-102 transition cursor-pointer"
+            className="bg-white text-main hover:bg-white/95 px-5 sm:px-6 py-2 sm:py-2.5 rounded-sm font-black text-xs uppercase tracking-wider shadow hover:scale-102 transition cursor-pointer active:scale-95 shrink-0"
           >
             Buy Now
           </button>
