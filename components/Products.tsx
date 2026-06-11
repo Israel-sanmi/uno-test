@@ -1,4 +1,6 @@
+"use client";
 import { Camera, BadgeCheck } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 type Product = {
   title: string;
@@ -12,18 +14,113 @@ type Product = {
 };
 
 const products: Product[] = [
-  { title: "K9 Mini Type-C Wireless Lavalier Microphone Noise Cancelling", price: "₦2,872", moq: "1 piece", sold: "551 sold", age: "2 yrs", origin: "CN", badge: "CE" },
-  { title: "OEM Customizable 85-Inch Android Smart LED TV 4K Television", price: "₦54,417-72,555", moq: "1 piece", sold: "812 sold", age: "12 yrs", origin: "CN", verified: true, badge: "CE CB" },
-  { title: "51.2V Lithium Iron Phosphate Battery Pack Solar Storage", price: "₦204,061-355,217", moq: "1 set", sold: "5 sold", age: "2 yrs", origin: "CN", verified: true, badge: "CE" },
-  { title: "New Arrival 1000W TVS Motor Tricycle Electric Cargo", price: "₦603,113-1,056,581", moq: "2 pieces", sold: "139 sold", age: "6 yrs", origin: "CN", verified: true, badge: "CE" },
-  { title: "Schylling NeeDoh Nice TPR Squishy Stress-Relieving Cube", price: "₦2,721-4,157", moq: "10 pieces", sold: "5,339 sold", age: "1 yr", origin: "CN", badge: "Reorder 41%" },
-  { title: "Smartphone 6.5\" HD Display 128GB Unlocked Mobile Phone", price: "₦98,500", moq: "1 piece", sold: "3,402 sold", age: "1 yr", origin: "CN", verified: true, badge: "FCC" },
-  { title: "Wireless Noise Cancelling Earbuds Pro Bluetooth 5.3", price: "₦3,940", moq: "10 pieces", sold: "1,204 sold", age: "1 yr", origin: "CN" },
-  { title: "Mini Portable Air Cooler Fan USB Rechargeable", price: "₦6,430", moq: "1 piece", sold: "1,890 sold", age: "2 yrs", origin: "CN" },
-  { title: "Smart Robot Vacuum Cleaner Mapping WiFi App Control", price: "₦48,750", moq: "1 piece", sold: "402 sold", age: "1 yr", origin: "CN", verified: true },
-  { title: "Original Unlocked Mobile Phone 5G Android 128GB", price: "₦312,000", moq: "1 piece", sold: "789 sold", age: "2 yrs", origin: "CN" },
-  { title: "Electric Cargo Tricycle 1500W Heavy Duty Loading", price: "₦845,000", moq: "1 piece", sold: "212 sold", age: "4 yrs", origin: "CN" },
-  { title: "Wireless Charger Stand 15W Fast Charging Pad", price: "₦4,210", moq: "5 pieces", sold: "2,109 sold", age: "1 yr", origin: "CN" },
+  {
+    title: "K9 Mini Type-C Wireless Lavalier Microphone Noise Cancelling",
+    price: "₦2,872",
+    moq: "1 piece",
+    sold: "551 sold",
+    age: "2 yrs",
+    origin: "CN",
+    badge: "CE",
+  },
+  {
+    title: "OEM Customizable 85-Inch Android Smart LED TV 4K Television",
+    price: "₦54,417-72,555",
+    moq: "1 piece",
+    sold: "812 sold",
+    age: "12 yrs",
+    origin: "CN",
+    verified: true,
+    badge: "CE CB",
+  },
+  {
+    title: "51.2V Lithium Iron Phosphate Battery Pack Solar Storage",
+    price: "₦204,061-355,217",
+    moq: "1 set",
+    sold: "5 sold",
+    age: "2 yrs",
+    origin: "CN",
+    verified: true,
+    badge: "CE",
+  },
+  {
+    title: "New Arrival 1000W TVS Motor Tricycle Electric Cargo",
+    price: "₦603,113-1,056,581",
+    moq: "2 pieces",
+    sold: "139 sold",
+    age: "6 yrs",
+    origin: "CN",
+    verified: true,
+    badge: "CE",
+  },
+  {
+    title: "Schylling NeeDoh Nice TPR Squishy Stress-Relieving Cube",
+    price: "₦2,721-4,157",
+    moq: "10 pieces",
+    sold: "5,339 sold",
+    age: "1 yr",
+    origin: "CN",
+    badge: "Reorder 41%",
+  },
+  {
+    title: 'Smartphone 6.5" HD Display 128GB Unlocked Mobile Phone',
+    price: "₦98,500",
+    moq: "1 piece",
+    sold: "3,402 sold",
+    age: "1 yr",
+    origin: "CN",
+    verified: true,
+    badge: "FCC",
+  },
+  {
+    title: "Wireless Noise Cancelling Earbuds Pro Bluetooth 5.3",
+    price: "₦3,940",
+    moq: "10 pieces",
+    sold: "1,204 sold",
+    age: "1 yr",
+    origin: "CN",
+  },
+  {
+    title: "Mini Portable Air Cooler Fan USB Rechargeable",
+    price: "₦6,430",
+    moq: "1 piece",
+    sold: "1,890 sold",
+    age: "2 yrs",
+    origin: "CN",
+  },
+  {
+    title: "Smart Robot Vacuum Cleaner Mapping WiFi App Control",
+    price: "₦48,750",
+    moq: "1 piece",
+    sold: "402 sold",
+    age: "1 yr",
+    origin: "CN",
+    verified: true,
+  },
+  {
+    title: "Original Unlocked Mobile Phone 5G Android 128GB",
+    price: "₦312,000",
+    moq: "1 piece",
+    sold: "789 sold",
+    age: "2 yrs",
+    origin: "CN",
+  },
+  {
+    title: "Electric Cargo Tricycle 1500W Heavy Duty Loading",
+    price: "₦845,000",
+    moq: "1 piece",
+    sold: "212 sold",
+    age: "4 yrs",
+    origin: "CN",
+  },
+  {
+    title: "Wireless Charger Stand 15W Fast Charging Pad",
+    price: "₦4,210",
+    moq: "5 pieces",
+    sold: "2,109 sold",
+    age: "1 yr",
+    origin: "CN",
+  },
 ];
 
 type Props = {
@@ -92,10 +189,11 @@ export default function Products({
 }
 
 function ProductCard({ product }: { product: Product }) {
+  const router = useRouter();
   return (
     <a
-      href="#"
-      className="group block rounded-xl border border-gray-200 bg-white p-3 hover:border-main transition"
+      onClick={() => router.push(`/product/${product.title}`)}
+      className="group block rounded-xl cursor-pointer border border-gray-200 bg-white p-3 hover:border-main transition"
     >
       <div className="relative aspect-square rounded-lg bg-main/5 grid place-items-center overflow-hidden">
         <span className="text-main/40 text-xs">Product image</span>

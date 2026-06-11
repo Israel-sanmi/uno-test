@@ -29,9 +29,10 @@ const categories = [
 ];
 
 const items = [
-  { label: "Home", hasMenu: true },
-  { label: "Shop", hasMenu: true },
-  { label: "Blog" },
+  { label: "Home" },
+  { label: "RFQ"},
+  { label: "Protection" },
+  { label: "Shipping" },
 ];
 
 export default function Header() {
@@ -55,7 +56,7 @@ export default function Header() {
     };
   }, []);
   return (
-    <header ref={ref} className="w-full bg-white border-b border-gray-100">
+    <header ref={ref} className="relative w-full bg-white border-b border-gray-100">
       <div className="mx-auto max-w-7xl flex items-center justify-between gap-6 px-4 py-4">
         {/* Logo */}
         <div className="flex items-center gap-4 ">
@@ -92,7 +93,7 @@ export default function Header() {
                 className="flex items-center gap-1 hover:text-main transition"
               >
                 {it.label}
-                {it.hasMenu && <ChevronDown className="size-3.5" />}
+                {/* {it.hasMenu && <ChevronDown className="size-3.5" />} */}
               </a>
             </li>
           ))}
