@@ -18,7 +18,7 @@ export default function TopCategories() {
         <div className="flex items-end justify-between mb-6">
           <div>
             <h2 className="text-2xl md:text-3xl font-bold text-black">
-              Top <span className="text-main">Categories</span>
+              Popular <span className="text-main">Categories</span>
             </h2>
             <p className="text-sm text-gray-600 mt-1">
               Hand-picked categories buyers love this week.

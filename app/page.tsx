@@ -13,9 +13,9 @@ export default function Home() {
     <div className="font-poppins text-black bg-white">
       <TopBar />
       <Header />
-      <NavMenu />
+      {/* <NavMenu /> */}
       <Hero />
-      <CategoriesList />
+      {/* <CategoriesList /> */}
       <Products />
       <TopCategories />
       <Features />

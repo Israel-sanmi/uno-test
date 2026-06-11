@@ -47,7 +47,7 @@ export default function Products({
         <div className="flex items-end justify-between mb-6">
           <div>
             <h2 className="text-2xl md:text-3xl font-bold text-black">
-              All <span className="text-main">Products</span>
+              Top <span className="text-main">Rated</span>
             </h2>
             <p className="text-sm text-gray-600 mt-1">
               Discover top deals from verified sellers across the marketplace.
